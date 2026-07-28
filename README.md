@@ -1,208 +1,131 @@
-<div align="center">
-
 # 🦊 Kaoruko Waguri
 
-**Bot de Telegram completo em ESM com SQLite, sistema VIP em 5 planos e Painel Web**
+Bot de Telegram em ESM puro (EcmaScript Modules), persistência em SQLite via `@boruto_vk7/better-sqlite3` e painel de controle web integrado via Express.
 
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js)](https://nodejs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4?logo=telegram)](https://t.me/)
-
-**285 comandos** • API **Okarun System**
-
-</div>
-
----
-
-## 📸 Menu Principal
-
-![Menu do Bot](https://res.cloudinary.com/wagurinuvem/image/upload/v1785035523/waguri/fotomenu_1785035522128_jpg_1785035522132_f4jita.jpg)
-
----
-
-## ✨ Funcionalidades
-
-- **285 comandos** organizados em categorias e carregados dinamicamente.
-- **Sistema VIP** robusto com 5 planos e controle de limites e cooldowns diários.
-- **Painel Web** administrativo com tema roxo/rosa, gráfico de uso de 14 dias, controle total de usuários, grupos, VIPs e logs em tempo real.
-- **Design unificado** em todos os comandos para uma experiência visual padronizada e limpa.
-- **Okarun System API** totalmente integrada para disponibilizar recursos e funcionalidades avançadas.
-- **Banco de Dados SQLite** via `better-sqlite3` utilizando modo WAL para máxima velocidade e confiabilidade.
-- **Administração de grupos** e comandos exclusivos de donos/administradores.
+O bot conta com **278 comandos** divididos em categorias (diversão, downloads, logos, ia, etc.) e utiliza a **API Okarun System** para processamento de mídias, inteligência artificial e geração de imagens.
 
 ---
 
 ## 🚀 Instalação e Execução
 
-### Requisitos Mínimos
-- **Node.js** v20 ou superior.
-- **Git** instalado para clonar e versionar.
-- Compilação nativa para o `@boruto_vk7/better-sqlite3` (funciona nativamente inclusive no Termux).
+### Requisitos
+* Node.js **v20** ou superior.
+* No Termux (Android) ou servidores Linux, garanta que as dependências para compilar módulos nativos estejam instaladas (necessárias para o driver do SQLite).
 
-### Passo a Passo de Instalação
+### Instalação rápida
 
-1. **Clonar o Repositório:**
+1. **Clone o repositório:**
    ```bash
    git clone https://github.com/borutovk7/kaoruko.git
    cd kaoruko
    ```
 
-2. **Instalar as Dependências:**
+2. **Instale as dependências:**
    ```bash
    npm install
    ```
 
-3. **Configurar as Variáveis de Ambiente:**
-   Copie o arquivo `.env.example` para `.env` e preencha suas chaves:
+3. **Configure as credenciais:**
+   Copie o arquivo de exemplo e edite com suas chaves:
    ```bash
    cp .env.example .env
    nano .env
    ```
 
-4. **Verificar Diagnósticos e Tipos:**
-   Você pode rodar testes rápidos de diagnóstico para validar sua configuração da API e estrutura do bot:
-   ```bash
-   npm run check    # Executa o diagnóstico completo do bot e conexão com a API
-   npm run tipos    # Verifica a consistência de tipos (opcional)
-   ```
+### Execução
 
-5. **Iniciar o Bot:**
-   * **Em Desenvolvimento (com recarregamento automático ao salvar):**
-     ```bash
-     npm run dev
-     ```
-   * **Em Produção:**
-     ```bash
-     npm start
-     ```
-   * **Gerenciamento em Segundo Plano (Produção Recomendado):**
-     ```bash
-     pm2 start index.js --name kaoruko
-     ```
+* **Em desenvolvimento (recarrega ao salvar arquivos):**
+  ```bash
+  npm run dev
+  ```
+
+* **Em produção (inicialização direta):**
+  ```bash
+  npm start
+  ```
+
+* **Manter rodando em produção (via PM2):**
+  ```bash
+  pm2 start index.js --name "kaoruko"
+  ```
+  *(Se você usar `/restart` no chat do bot, ele encerra o processo com código 0 e o PM2 sobe a aplicação novamente).*
 
 ---
 
-## 📋 Variáveis de Ambiente (.env)
+## 📋 Configurações (.env)
 
-| Variável | Descrição | Onde obter |
-|---------|---------|------------|
-| `BOT_TOKEN` | Token de acesso do seu bot | [@BotFather](https://t.me/BotFather) |
-| `OKARUN_APIKEY` | Chave de autenticação da API Okarun | [Okarun System API](https://api.okarunsystem.com.br) |
-| `BOT_OWNERS` | Lista de IDs de Telegram dos donos (separados por vírgula) | [@userinfobot](https://t.me/userinfobot) |
-| `PAINEL_ADMIN_EMAIL` | Email administrativo padrão para primeiro acesso ao painel | Definir no `.env` |
-| `PAINEL_ADMIN_SENHA` | Senha administrativa padrão para o painel | **Troque após o primeiro acesso** |
-| `PAINEL_PORT` | Porta onde o painel web irá rodar | Padrão: `4091` |
+Estas são as variáveis suportadas no `.env`. Os dados também podem ser lidos a partir de um arquivo `config.json` na raiz, mas o `.env` tem prioridade.
 
----
-
-## 🖥️ Painel Web & Administração de Contas
-
-O painel é responsivo, dinâmico e oferece controle total das atividades do bot em tempo real.
-
-### Segurança de Acesso
-* Senhas criptografadas usando **PBKDF2-SHA512** com 120.000 iterações e *salt* individual por conta.
-* Sessões seguras de 7 dias armazenadas em cookies do tipo **HttpOnly**.
-* Bloqueio temporário de 15 minutos após 5 tentativas de login incorretas consecutivas.
-
-### Comandos de Contas no Telegram (Exclusivo para Donos)
-A conta de administrador definida no `.env` é gerada automaticamente na primeira inicialização. Você pode gerenciar as contas de acesso através do bot usando:
-
-```text
-/conta criar pessoa@email.com senha123 123456789  # Cria conta e vincula ao ID Telegram
-/conta listar                                      # Lista as contas existentes
-/conta senha pessoa@email.com novaSenha            # Altera a senha de uma conta
-/conta vincular pessoa@email.com 123456789         # Vincula a conta a um ID de Telegram
-/conta excluir pessoa@email.com                    # Remove uma conta do painel
-```
-
-Você também pode habilitar o registro público no site alterando a flag no seu `.env`:
-`PAINEL_REGISTRO_ABERTO=true`
-
----
-
-## 👑 Sistema VIP e Limites
-
-Os limites diários de requisições de comandos são calculados diretamente no banco de dados e são redefinidos automaticamente à meia-noite (UTC). A limpeza rotineira dos dados e expiração dos planos VIPs ocorre diariamente às 03:00.
-
-| Plano | Limite Diário | Cooldown entre Comandos |
+| Chave | Descrição | Onde obter |
 |---|---|---|
-| **Free** | 50 requisições | 5 segundos |
-| **Bronze** | 150 requisições | 2 segundos |
-| **Prata** | 400 requisições | 1 segundo |
-| **Ouro** | 1.000 requisições | Sem cooldown |
-| **Diamante** | Ilimitado | Sem cooldown |
+| `BOT_TOKEN` | Token do bot do Telegram | [@BotFather](https://t.me/BotFather) |
+| `OKARUN_APIKEY` | Chave da API Okarun | [Okarun System API](https://api.okarunsystem.com.br) |
+| `BOT_OWNERS` | ID dos donos do bot (separados por vírgula) | [@userinfobot](https://t.me/userinfobot) |
+| `PAINEL_ADMIN_EMAIL` | Email do administrador para o painel web | Defina você mesmo |
+| `PAINEL_ADMIN_SENHA` | Senha inicial de acesso ao painel web | Defina você mesmo (mínimo 8 caracteres) |
+| `PAINEL_PORT` | Porta usada pelo painel Express | Padrão `4091` |
+| `BOT_TZ` | Fuso horário do bot | Exemplo: `America/Sao_Paulo` |
 
-### Comandos de Gerenciamento VIP (Exclusivo para Donos)
+---
+
+## 👑 Sistema VIP e Limites Diários
+
+O controle de uso e privilégios é persistido diretamente no SQLite. O limite de comandos é zerado diariamente à meia-noite e a rotina automática limpa registros de uso e VIPs expirados às 03:00 de cada dia.
+
+Os planos configurados em `core/vip.js` são:
+
+| Plano | Limite Diário | Cooldown | Benefícios Adicionais |
+|---|---|---|---|
+| **Free** | 50 comandos | 5 segundos | Uso básico do bot |
+| **Bronze** | 150 comandos | 2 segundos | Sem anúncios no rodapé |
+| **Prata** | 400 comandos | 1 segundo | Downloads em fila prioritária |
+| **Ouro** | 1.000 comandos | Sem cooldown | Acesso a comandos exclusivos |
+| **Diamante** | Ilimitado | Sem cooldown | Suporte direto com o dono |
+
+### Comandos Administrativos (no chat do bot)
+* `/vip` — Exibe seu plano atual, histórico de transações e uso diário.
+* `/addvip [id_telegram] [plano] [duração]` — Concede VIP (Ex: `/addvip 123456789 ouro 30d` ou `/addvip 123456789 diamante vitalicio`).
+* `/delvip [id_telegram]` — Remove o VIP de um usuário.
+* `/listvip` — Lista os VIPs ativos no sistema.
+
+---
+
+## 🖥️ Painel Administrativo Web
+
+O painel é responsivo, feito com HTML5, CSS puro e JavaScript moderno no front-end, consumindo endpoints privados da API interna do Express.
+
+### Segurança
+* Senhas administrativas são armazenadas com hash **PBKDF2-SHA512** com 120.000 iterações e *salts* únicos por usuário.
+* As sessões são mantidas através de cookies seguros com flag **HttpOnly** de 7 dias.
+* Se houver 5 tentativas falhas seguidas no login, o IP é bloqueado temporariamente por 15 minutos.
+
+### Gerenciamento de Contas via Chat (Dono)
+Você pode criar, editar e excluir contas administrativas diretamente pelo Telegram:
 ```text
-/vip                             # Exibe o seu plano atual, histórico de VIP e uso diário
-/addvip 123456789 ouro 30d       # Concede VIP Ouro por 30 dias para o ID correspondente
-/addvip 123456789 diamante vitalicio # Concede VIP vitalício
-/delvip 123456789                # Remove o plano VIP do usuário
-/listvip                         # Lista todos os usuários VIP ativos
+/conta criar [email] [senha] [id_telegram]
+/conta listar
+/conta senha [email] [nova_senha]
+/conta vincular [email] [id_telegram]
+/conta excluir [email]
 ```
 
----
-
-## 🛠️ Comandos Principais
-
-### Menu e Informações
-* `/menu` - Menu interativo principal do bot.
-* `/ping` - Status de latência e conexão do bot com a API Okarun.
-* `/vip` - Consulta de limites, planos e estatísticas do usuário.
-* `/painel` - Retorna as informações e o link de acesso ao painel web.
-
-### Downloads e Mídias
-* `/play` - Pesquisa e download de músicas e vídeos do YouTube.
-* `/tiktok` - Download de vídeos do TikTok sem marca d'água.
-* `/instagram` - Download de reels e mídias do Instagram.
-* `/ytmp3` / `/ytmp4` - Download direto de áudio ou vídeo do YouTube via link.
-
-### Diversão (Mais de 70 comandos)
-* `/dado`, `/escolher`, `/casal`, `/hacker`, `/sadboy` e diversos outros comandos divertidos de interação, memes e zoação.
-
-### Logos e Textos Artísticos (146 comandos)
-* Uma vasta gama de geradores de imagem com designs e efeitos de texto personalizados (ex: `/neon`, `/3dgold`, `/graffiti`).
-
-### Inteligência Artificial
-* `/ia`, `/ia2` - Assistentes conversacionais integrados.
-* `/imagine`, `/animagine` - Geradores de imagens via IA.
-* `/removebg` - Remove o fundo de imagens de forma automática.
-* `/toanime`, `/tohd` - Filtros e melhorias de imagem.
+Para permitir que qualquer usuário crie uma conta no painel web, ative a variável `PAINEL_REGISTRO_ABERTO=true` no `.env`.
 
 ---
 
-## 🖼️ Design Unificado
+## 🛠️ Como criar novos comandos
 
-Todos os comandos compartilham da mesma estrutura de design unificada para manter a coerência estética do bot:
+O bot utiliza um sistema de **autoload** inteligente de comandos baseado na estrutura de diretórios. Para criar um comando, basta adicionar um arquivo `.js` dentro da subpasta correspondente em `commands/`.
 
-```js
-import { gerarHeader, gerarFooter } from '../utils/design.js';
+* Nome da pasta = Categoria no menu.
+* Nome do arquivo = Nome do comando principal (Ex: `commands/pesquisa/clima.js` vira `/clima`).
 
-export default async function comando(ctx) {
-  ctx._startTime = Date.now();
-
-  let texto = gerarHeader(ctx, 'TÍTULO');
-  texto += `\n┃\n┃ Conteúdo aqui...`;
-  texto += `\n┃\n${gerarFooter(ctx)}`;
-
-  await ctx.sendTextWithMedia(ctx.botConfig.assets.headerImage, texto);
-}
-```
-
----
-
-## 💻 Desenvolvimento de Novos Comandos
-
-Criar novos comandos para o Kaoruko Waguri é extremamente simples. O sistema possui **autoload dinâmico por pasta**.
-
-Basta criar um novo arquivo `.js` na respectiva subpasta de `commands/`. O nome do arquivo determinará o nome do comando e a subpasta definirá a categoria.
-
-### Exemplo de Comando (`commands/pesquisa/clima.js`):
-```js
+### Estrutura básica de um comando:
+```javascript
 import { requisitar, acharCampo } from '../../core/api.js';
 import { escapeHtml } from '../../utils/helpers.js';
 
-export const description = 'Clima de uma cidade';
+export const description = 'Consulta o clima de uma cidade';
 export const aliases = ['tempo'];
 export const uso = '/clima Manaus';
 export const cooldown = 5;
@@ -210,8 +133,7 @@ export const cooldown = 5;
 /** @param {import('../../types/index.js').CommandContext} ctx */
 export default async function clima(ctx) {
   if (!ctx.q) {
-    await ctx.uso(`${ctx.prefix}clima Manaus`, 'Digite a cidade.');
-    return;
+    return ctx.uso(`${ctx.prefix}clima Manaus`, 'Você precisa informar a cidade.');
   }
 
   const carregando = await ctx.carregando('Consultando...');
@@ -219,7 +141,9 @@ export default async function clima(ctx) {
   try {
     const dados = await requisitar('/api/clima', { cidade: ctx.q });
     await carregando.apagar();
-    await ctx.responderComApagar(`<b>${escapeHtml(ctx.q)}</b>: ${acharCampo(dados, ['temp'])} graus`);
+    
+    const temp = acharCampo(dados, ['temp']);
+    await ctx.responderComApagar(`<b>${escapeHtml(ctx.q)}</b>: ${temp}°C`);
   } catch (err) {
     await carregando.apagar();
     throw err;
@@ -227,13 +151,11 @@ export default async function clima(ctx) {
 }
 ```
 
-### O que você tem disponível no `ctx` (Contexto do Comando):
-
-| Categoria | Propriedades / Métodos Disponíveis |
-|---|---|
-| **Dados Recebidos** | `ctx.q`, `ctx.args`, `ctx.prefix`, `ctx.userId`, `ctx.chatId`, `ctx.nome`, `ctx.username`, `ctx.isGroup`, `ctx.isPrivate`, `ctx.respondida`, `ctx.waguri`, `ctx.botConfig` |
-| **Envio de Mensagens** | `ctx.responder()`, `ctx.responderComApagar()`, `ctx.erro()`, `ctx.uso()`, `ctx.carregando()`, `ctx.enviarFoto()`, `ctx.enviarVideo()`, `ctx.enviarAudio()`, `ctx.enviarDocumento()`, `ctx.sendTextWithMedia()`, `ctx.react()` |
-| **Permissões & Limites** | `ctx.isDono`, `ctx.isVip`, `ctx.plano`, `ctx.limite()`, `ctx.garantirAdmin()` |
+### Propriedades disponíveis no contexto (`ctx`)
+Ao rodar um comando, o parâmetro `ctx` fornece atalhos rápidos para facilitar a codificação:
+* **Dados:** `ctx.q` (texto após o comando), `ctx.args` (array de argumentos), `ctx.prefix`, `ctx.userId`, `ctx.chatId`, `ctx.nome`, `ctx.username`, `ctx.isGroup`, `ctx.isPrivate`.
+* **Respostas:** `ctx.responder()`, `ctx.responderComApagar()`, `ctx.erro()`, `ctx.uso()`, `ctx.carregando()`, `ctx.sendTextWithMedia()`.
+* **Privilégios:** `ctx.isDono`, `ctx.isVip`, `ctx.plano` (detalhes do plano atual do usuário).
 
 ---
 
@@ -241,57 +163,46 @@ export default async function clima(ctx) {
 
 ```
 kaoruko/
-├── .env                    # Configuração local (Ignorado pelo Git)
+├── index.js                # Arquivo principal de boot
+├── package.json            # Scripts de execução e dependências
 ├── .env.example            # Exemplo de configuração limpa
-├── .gitignore              # Arquivos e pastas ignorados no commit
+├── .gitignore              # Arquivos e diretórios ignorados pelo Git
 ├── LICENSE                 # Termos da Licença MIT
-├── COPYRIGHT.md            # Direitos Autorais proprietários
-├── index.js                # Arquivo de inicialização principal
-├── jsconfig.json           # Auxiliar para autocompletes no editor
-├── package.json            # Scripts e dependências do projeto
-├── database/               # Pasta reservada para os bancos SQLite
+├── COPYRIGHT.md            # Declaração de Direitos Autorais
+├── database/               # Pasta onde o arquivo do SQLite (.db) é criado
 ├── types/
-│   └── index.d.ts          # Definições de tipo para o Contexto (JSDoc)
+│   └── index.d.ts          # Tipos JSDoc para autocompletar no VS Code
 ├── config/
-│   └── index.js            # Arquivo de carregamento de configurações
-├── core/                   # Núcleo funcional e lógico do bot
-├── commands/               # Autoload de Comandos (285 comandos)
-│   ├── registry.js         # Registrador dinâmico de comandos
-│   ├── download/
-│   ├── ia/
-│   ├── logos/
-│   ├── diversao/
-│   ├── pesquisa/
-│   ├── dono/
-│   └── info/
-├── events/                 # Manipulação de eventos do Telegram (mensagens, callbacks)
-├── painel/                 # Servidor Express e arquivos estáticos do Painel Web
-└── utils/                  # Utilitários gerais (logger, auxiliares de texto e banner)
+│   └── index.js            # Arquivo que centraliza e valida configurações
+├── core/                   # Núcleo de lógica do sistema (banco, api, vip, auth)
+├── events/                 # Handlers de mensagens e botões interativos do Telegram
+├── painel/                 # Servidor Express (front estático e endpoints de API)
+├── utils/                  # Utilitários de design, texto e logs de console
+└── commands/               # Pastas de comandos (autoload automático)
+    ├── registry.js         # Gerencia o carregamento de todos os comandos
+    ├── diversao/           # Comandos de entretenimento (72)
+    ├── dono/               # Comandos administrativos de dono (10)
+    ├── download/           # Módulos para baixar mídias (13)
+    ├── grupo/              # Comandos para administração de grupos (2)
+    ├── ia/                 # Integrações de Inteligência Artificial (8)
+    ├── info/               # Status do bot e painel (6)
+    ├── logos/              # Geradores de imagens de marcas e textos (146)
+    └── pesquisa/           # Comandos utilitários de busca e APIs (21)
 ```
 
 ---
 
-## 📜 Direitos Autorais
+## 📜 Direitos Autorais e Licença
 
-**© 2025-2026 Eduardo Develop**
-
-* **Desenvolvedor e Dono Atual:** Eduardo Develop
+* **Autor / Desenvolvedor:** Eduardo Develop
 * **Empresa:** Lagos Soluções
-* **Criador da API:** Okarun System API (https://api.okarunsystem.com.br)
+* **API Utilizada:** Okarun System API (https://api.okarunsystem.com.br)
 
-Este software é protegido por direitos autorais proprietários de Eduardo Develop. Veja os arquivos [LICENSE](LICENSE) e [COPYRIGHT.md](COPYRIGHT.md) para ler todos os detalhes de termos e restrições de uso.
+Este software é de autoria de **Eduardo Develop**. Maiores restrições sobre uso de marcas, direitos de alteração e contato para parcerias ou licenciamentos comerciais estão detalhados no arquivo [COPYRIGHT.md](COPYRIGHT.md).
 
----
-
-## 📄 Licença
-
-Este projeto está sob a licença **MIT** — veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+O código fonte está licenciado sob os termos da licença **MIT** (veja o arquivo [LICENSE](LICENSE)).
 
 ---
-
 <div align="center">
-
-**Feito com ❤️ por Eduardo Develop**  
-**Lagos Soluções • Okarun System API**
-
+  <b>Eduardo Develop • Lagos Soluções</b>
 </div>
