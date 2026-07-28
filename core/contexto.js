@@ -7,6 +7,7 @@ import {
   toUnicodeBoldUpper,
   LIMITE_LEGENDA,
 } from "../utils/helpers.js";
+
 export function tecladoApagar(userId, extras = []) {
   return {
     inline_keyboard: [
@@ -15,26 +16,32 @@ export function tecladoApagar(userId, extras = []) {
     ],
   };
 }
+
 function nomeCompleto(from) {
   return (
     [from.first_name, from.last_name].filter(Boolean).join(" ").trim() ||
     "Usuario"
   );
 }
+
 export function criarContexto(ctx, waguri) {
+  const _startTime = Date.now();
   const msg = ctx.message;
   const from = ctx.from;
   const chat = ctx.chat;
   if (!msg || !from || !chat) return null;
+
   const tipoChat = chat.type === "supergroup" ? "group" : chat.type;
   const isGroup = tipoChat === "group";
   const isPrivate = tipoChat === "private";
+
   const texto =
     "text" in msg && typeof msg.text === "string"
       ? msg.text
       : "caption" in msg && typeof msg.caption === "string"
         ? msg.caption
         : "";
+
   const prefix = botConfig.prefixes.find((p) => texto.startsWith(p)) ?? "";
   const semPrefixo = prefix ? texto.slice(prefix.length).trim() : "";
   const partes = semPrefixo.split(/\s+/).filter(Boolean);
@@ -42,14 +49,88 @@ export function criarContexto(ctx, waguri) {
     ? ((partes[0] ?? "").split("@")[0]?.toLowerCase() ?? "")
     : "";
   const args = partes.slice(1);
+
   const userId = String(from.id);
   const chatId = chat.id;
   const messageId = msg.message_id;
   const nome = nomeCompleto(from);
+
   const respondida =
     "reply_to_message" in msg && msg.reply_to_message
       ? msg.reply_to_message
       : undefined;
+
+  function formatarOrnamental(txt, comandoNome = "") {
+    if (typeof txt !== "string") return txt;
+
+    // Se já está formatado com o design do menu, não duplica
+    if (txt.includes("╭══════════════════════╗")) return txt;
+
+    // Mensagens de carregamento muito curtas (ex: " Medindo...", " Consultando...") não são envelopadas
+    if (txt.length < 35 && !txt.includes("\n")) return txt;
+
+    const now = new Date();
+    const data = now.toLocaleDateString("pt-BR", { timeZone: botConfig.timezone });
+    const hora = now.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: botConfig.timezone,
+    });
+    const pingTime = Date.now() - _startTime;
+
+    const bBold = (t) => toUnicodeBoldUpper(t);
+
+    let header = `╭══════════════════════╗
+╰╮ 𝙳𝙰𝚃𝙰: ${data}
+╭┤ 𝙷𝙾𝚁𝙰: ${hora}
+╰╮ 𝙿𝙸𝙽𝙶: ${pingTime}ms
+╭┤ 𝚂𝚃𝙰𝚃𝚄𝚂: 𝙾𝙽𝙻𝙸𝙽𝙴
+┃╰═════════════════════╝
+╰╔═════════════════════╗
+╭┤ ${bBold(botConfig.name)}
+┃╚═════════════════════╝`;
+
+    let titulo = comandoNome ? bBold(comandoNome) : "";
+    let corpoTexto = txt;
+
+    // Heurística de extração do primeiro título em negrito (<b>...</b> ou <strong>...</strong>)
+    const linhas = txt.split("\n");
+    if (linhas.length > 0) {
+      const primeiraLinha = linhas[0].trim();
+      const matchBold =
+        primeiraLinha.match(/^<b>(.*?)<\/b>$/i) ||
+        primeiraLinha.match(/^<strong>(.*?)<\/strong>$/i);
+      if (matchBold) {
+        titulo = bBold(matchBold[1]);
+        linhas.shift();
+        // Remove quebras de linha em excesso logo após o título
+        while (linhas.length > 0 && !linhas[0].trim()) {
+          linhas.shift();
+        }
+        corpoTexto = linhas.join("\n");
+      }
+    }
+
+    if (titulo) {
+      header += `\n╰╔═════════════════════╗\n╭┤ ${titulo}\n┃╚═════════════════════╝`;
+    }
+
+    const linhasCorpo = corpoTexto.split("\n");
+    let corpo = "\n┃";
+    for (const l of linhasCorpo) {
+      if (!l.trim()) {
+        corpo += "\n┃";
+      } else {
+        corpo += `\n┃ ${l}`;
+      }
+    }
+    corpo += "\n┃";
+
+    const footer = `\n╰╔═════════════════════╗\n╭┤ ${botConfig.name.toUpperCase()}\n╰╚═════════════════════╝`;
+
+    return header + corpo + footer;
+  }
+
   const contexto = {
     ctx,
     waguri,
@@ -75,7 +156,11 @@ export function criarContexto(ctx, waguri) {
     plano: planoDe(userId),
     limite: () => usoDe(userId),
     respondida,
+
     async responder(txt, opcoes = {}) {
+      if (!opcoes.plain && typeof txt === "string") {
+        txt = formatarOrnamental(txt, comando);
+      }
       let ultima;
       for (const parte of fatiar(txt)) {
         try {
@@ -96,21 +181,26 @@ export function criarContexto(ctx, waguri) {
       }
       return ultima;
     },
+
     async responderComApagar(txt, opcoes = {}) {
       return contexto.responder(txt, {
         reply_markup: tecladoApagar(userId),
         ...opcoes,
       });
     },
+
     async erro(txt) {
-      return contexto.responderComApagar(`${escapeHtml(txt)}`);
+      return contexto.responderComApagar(`<b>ERRO</b>\n\n${escapeHtml(txt)}`);
     },
+
     async uso(exemplo, explicacao = "") {
-      return contexto.responderComApagar(
-        ` <b>Faltou informacao</b>${explicacao ? `\n\n${escapeHtml(explicacao)}` : ""}` +
-          `\n\n<b>Exemplo:</b>\n<code>${escapeHtml(exemplo)}</code>`,
-      );
+      const msgUso =
+        `<b>FALTOU INFORMACAO</b>\n\n` +
+        (explicacao ? `${escapeHtml(explicacao)}\n\n` : "") +
+        `<b>Exemplo:</b>\n<code>${escapeHtml(exemplo)}</code>`;
+      return contexto.responderComApagar(msgUso);
     },
+
     async carregando(txt = " Processando...") {
       let enviada;
       try {
@@ -142,6 +232,7 @@ export function criarContexto(ctx, waguri) {
         },
       };
     },
+
     async enviarFoto(url, legenda = "", opcoes = {}) {
       return ctx.replyWithPhoto(
         { url },
@@ -153,6 +244,7 @@ export function criarContexto(ctx, waguri) {
         },
       );
     },
+
     async enviarVideo(url, legenda = "", opcoes = {}) {
       return ctx.replyWithVideo(
         { url },
@@ -165,6 +257,7 @@ export function criarContexto(ctx, waguri) {
         },
       );
     },
+
     async enviarAudio(url, opcoes = {}) {
       return ctx.replyWithAudio(
         { url },
@@ -175,6 +268,7 @@ export function criarContexto(ctx, waguri) {
         },
       );
     },
+
     async enviarDocumento(url, opcoes = {}) {
       return ctx.replyWithDocument(
         { url },
@@ -185,16 +279,21 @@ export function criarContexto(ctx, waguri) {
         },
       );
     },
+
     async sendTextWithMedia(imagem, txt, opcoes = {}) {
+      if (!opcoes.plain && typeof txt === "string") {
+        txt = formatarOrnamental(txt, comando);
+      }
       try {
         await contexto.enviarFoto(imagem, txt, {
           reply_markup: tecladoApagar(userId),
           ...opcoes,
         });
       } catch {
-        await contexto.responderComApagar(txt, opcoes);
+        await contexto.responderComApagar(txt, { plain: true, ...opcoes });
       }
     },
+
     async react(emoji = "") {
       try {
         await ctx.telegram.callApi("setMessageReaction", {
@@ -204,9 +303,11 @@ export function criarContexto(ctx, waguri) {
         });
       } catch {}
     },
+
     tecladoApagar(extras) {
       return tecladoApagar(userId, extras);
     },
+
     async garantirAdmin() {
       if (!isGroup) return false;
       if (contexto.isAdmin) return true;
@@ -219,8 +320,10 @@ export function criarContexto(ctx, waguri) {
       }
       return contexto.isAdmin;
     },
+
     toUnicodeBoldUpper,
     botConfig,
   };
+
   return contexto;
 }
