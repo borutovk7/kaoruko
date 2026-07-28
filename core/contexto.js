@@ -80,17 +80,7 @@ export function criarContexto(ctx, waguri) {
 
     const bBold = (t) => toUnicodeBoldUpper(t);
 
-    let header = `╭══════════════════════╗
-╰╮ 𝙳𝙰𝚃𝙰: ${data}
-╭┤ 𝙷𝙾𝚁𝙰: ${hora}
-╰╮ 𝙿𝙸𝙽𝙶: ${pingTime}ms
-╭┤ 𝚂𝚃𝙰𝚃𝚄𝚂: 𝙾𝙽𝙻𝙸𝙽𝙴
-┃╰═════════════════════╝
-╰╔═════════════════════╗
-╭┤ ${bBold(botConfig.name)}
-┃╚═════════════════════╝`;
-
-    let titulo = comandoNome ? bBold(comandoNome) : "";
+    let titulo = comandoNome ? bBold(comandoNome) : bBold(botConfig.name);
     let corpoTexto = txt;
 
     // Heurística de extração do primeiro título em negrito (<b>...</b> ou <strong>...</strong>)
@@ -111,9 +101,16 @@ export function criarContexto(ctx, waguri) {
       }
     }
 
-    if (titulo) {
-      header += `\n╰╔═════════════════════╗\n╭┤ ${titulo}\n┃╚═════════════════════╝`;
-    }
+    // Monta o cabeçalho único (com apenas uma caixa de título para não repetir o nome do bot)
+    const header = `╭══════════════════════╗
+╰╮ 𝙳𝙰𝚃𝙰: ${data}
+╭┤ 𝙷𝙾𝚁𝙰: ${hora}
+╰╮ 𝙿𝙸𝙽𝙶: ${pingTime}ms
+╭┤ 𝚂𝚃𝙰𝚃𝚄𝚂: 𝙾𝙽𝙻𝙸𝙽𝙴
+┃╰═════════════════════╝
+╰╔═════════════════════╗
+╭┤ ${titulo}
+┃╚═════════════════════╝`;
 
     const linhasCorpo = corpoTexto.split("\n");
     let corpo = "\n┃";
